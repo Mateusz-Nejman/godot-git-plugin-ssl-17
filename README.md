@@ -2,6 +2,13 @@
 
 <img src="/icon.png" width="25%" />
 
+## Fork info
+This fork is created only for workaround for -17 SSL error https://github.com/godotengine/godot-git-plugin/issues/299
+
+Improvements:
+- use git config "user.password" "<password>" for omitting setting git password each Godot restart
+- use git config with "ssh.public", "ssh.private" or "ssh.password" for storing SSH data
+
 # Godot Git Plugin
 
 Git implementation of the Godot Engine VCS interface in Godot. We use [libgit2](https://libgit2.org) as our backend to simulate Git in code.

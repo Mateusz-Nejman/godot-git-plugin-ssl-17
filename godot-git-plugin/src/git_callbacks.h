@@ -18,3 +18,4 @@ extern "C" int credentials_cb(git_cred **out, const char *url, const char *usern
 extern "C" int push_transfer_progress_cb(unsigned int current, unsigned int total, size_t bytes, void *payload);
 extern "C" int push_update_reference_cb(const char *refname, const char *status, void *data);
 extern "C" int diff_hunk_cb(const git_diff_delta *delta, const git_diff_hunk *range, void *payload);
+extern "C" int certificate_check_cb(git_cert *cert, int valid, const char *host, void *payload);

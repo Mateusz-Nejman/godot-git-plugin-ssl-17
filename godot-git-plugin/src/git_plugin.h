@@ -62,4 +62,6 @@ public:
 	bool check_errors(int error, godot::String function, godot::String file, int line, godot::String message, const std::vector<git_error_code> &ignores = {});
 	void create_gitignore_and_gitattributes();
 	bool create_initial_commit();
+private:
+	void _get_credentials_from_config();
 };

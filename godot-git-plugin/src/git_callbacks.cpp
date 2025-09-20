@@ -107,3 +107,9 @@ extern "C" int diff_hunk_cb(const git_diff_delta *delta, const git_diff_hunk *ra
 
 	return 1;
 }
+
+extern "C" int certificate_check_cb(git_cert *cert, int valid, const char *host, void *payload)
+{
+	//Ignore certificate check due to -17 SSL error
+	return 0;
+}

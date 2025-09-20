@@ -71,11 +71,11 @@ bool GitPlugin::check_errors(int error, godot::String function, godot::String fi
 }
 
 void GitPlugin::_set_credentials(const godot::String &username, const godot::String &password, const godot::String &ssh_public_key_path, const godot::String &ssh_private_key_path, const godot::String &ssh_passphrase) {
-	creds.username = username;
-	creds.password = password;
-	creds.ssh_public_key_path = ssh_public_key_path;
-	creds.ssh_private_key_path = ssh_private_key_path;
-	creds.ssh_passphrase = ssh_passphrase;
+	if(!username.is_empty()) creds.username = username;
+	if(!password.is_empty()) creds.password = password;
+	if(!ssh_public_key_path.is_empty()) creds.ssh_public_key_path = ssh_public_key_path;
+	if(!ssh_private_key_path.is_empty()) creds.ssh_private_key_path = ssh_private_key_path;
+	if(!ssh_passphrase.is_empty()) creds.ssh_passphrase = ssh_passphrase;
 }
 
 void GitPlugin::_discard_file(const godot::String &file_path) {
@@ -528,6 +528,7 @@ void GitPlugin::_push(const godot::String &remote, bool force) {
 	remote_cbs.payload = &creds;
 	remote_cbs.push_transfer_progress = &push_transfer_progress_cb;
 	remote_cbs.push_update_reference = &push_update_reference_cb;
+	remote_cbs.certificate_check = &certificate_check_cb;
 
 	godot::String msg = "Could not connect to remote \"" + remote + "\". Are your credentials correct? Try using a PAT token (in case you are using Github) as your password";
 	GIT2_CALL(git_remote_connect(remote_object.get(), GIT_DIRECTION_PUSH, &remote_cbs, nullptr, nullptr), msg);
@@ -672,6 +673,7 @@ godot::String GitPlugin::_get_vcs_name() {
 bool GitPlugin::_initialize(const godot::String &project_path) {
 	using namespace godot;
 
+	godot::UtilityFunctions::print("LibGit plugin for Godot forked version by Mateusz Nejman");
 	ERR_FAIL_COND_V(project_path == "", false);
 
 	int init = git_libgit2_init();
@@ -701,6 +703,8 @@ bool GitPlugin::_initialize(const godot::String &project_path) {
 		create_gitignore_and_gitattributes();
 	}
 
+	_get_credentials_from_config();
+
 	return true;
 }
 
@@ -708,4 +712,49 @@ bool GitPlugin::_shut_down() {
 	repo.reset(); // Destroy repo object before libgit2 shuts down
 	GIT2_CALL_R(git_libgit2_shutdown(), "Could not shutdown Git Plugin", false);
 	return true;
+}
+
+void GitPlugin::_get_credentials_from_config()
+{
+	git_config *cfg;
+	const char *user_name, *user_password, *ssh_public, *ssh_private, *ssh_password;
+
+	if(git_repository_config_snapshot(&cfg, repo.get()) == 0)
+	{
+		godot::UtilityFunctions::print("Git config found");
+
+		if(git_config_get_string(&user_name, cfg, "user.name") == 0)
+		{
+			godot::UtilityFunctions::print("Git config found username " + godot::String(user_name));
+			creds.username = godot::String(user_name);
+		}
+
+		if(git_config_get_string(&user_password, cfg, "user.password") == 0)
+		{
+			godot::UtilityFunctions::print("Git config found password");
+			creds.password = godot::String(user_password);
+		}
+
+		if(git_config_get_string(&ssh_public, cfg, "ssh.public") == 0)
+		{
+			godot::UtilityFunctions::print("Git config found SSH public path " + godot::String(ssh_public));
+			creds.ssh_public_key_path = godot::String(ssh_public);
+		}
+
+		if(git_config_get_string(&ssh_private, cfg, "ssh.private") == 0)
+		{
+			godot::UtilityFunctions::print("Git config found SSH private path " + godot::String(ssh_private));
+			creds.ssh_private_key_path = godot::String(ssh_private);
+		}
+
+		if(git_config_get_string(&ssh_password, cfg, "ssh.password") == 0)
+		{
+			godot::UtilityFunctions::print("Git config found SSH password");
+			creds.ssh_passphrase = godot::String(ssh_password);
+		}
+	}
+	else
+	{
+		godot::UtilityFunctions::print("Could not get git config");
+	}
 }
