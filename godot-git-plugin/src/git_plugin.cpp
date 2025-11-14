@@ -407,6 +407,7 @@ void GitPlugin::_fetch(const godot::String &remote) {
 	remote_cbs.payload = &creds;
 	remote_cbs.push_transfer_progress = &push_transfer_progress_cb;
 	remote_cbs.push_update_reference = &push_update_reference_cb;
+	remote_cbs.certificate_check = &certificate_check_cb;
 
 	GIT2_CALL(git_remote_connect(remote_object.get(), GIT_DIRECTION_FETCH, &remote_cbs, nullptr, nullptr), "Could not connect to remote \"" + remote + "\". Are your credentials correct? Try using a PAT token (in case you are using Github) as your password");
 
@@ -431,6 +432,7 @@ void GitPlugin::_pull(const godot::String &remote) {
 	remote_cbs.payload = &creds;
 	remote_cbs.push_transfer_progress = &push_transfer_progress_cb;
 	remote_cbs.push_update_reference = &push_update_reference_cb;
+	remote_cbs.certificate_check = &certificate_check_cb;
 
 	GIT2_CALL(git_remote_connect(remote_object.get(), GIT_DIRECTION_FETCH, &remote_cbs, nullptr, nullptr), "Could not connect to remote \"" + remote + "\". Are your credentials correct? Try using a PAT token (in case you are using Github) as your password");
 
